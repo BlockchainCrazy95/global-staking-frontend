@@ -5,9 +5,8 @@ import { NavLink } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
-import { WalletConnect } from "../wallet";
-
 import "./topbar.scss";
+import ConnectButton from "../ConnectButton";
 const useStyles = makeStyles(theme => ({
   appBar: {
     [theme.breakpoints.up("sm")]: {
@@ -123,7 +122,7 @@ function TopBar({ theme, toggleTheme, handleDrawerToggle }) {
           {/* <ConnectMenu theme={theme} /> */}
 
         </Box>
-        <WalletConnect />
+        <ConnectButton />
 
       </Toolbar>
     </AppBar>

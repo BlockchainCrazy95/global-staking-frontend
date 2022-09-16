@@ -16,20 +16,6 @@ import TopBar from "./components/TopBar/TopBar.jsx";
 import Messages from "./components/Messages/Messages";
 import NotFound from "./views/404/NotFound";
 
-import {
-  ConnectionProvider,
-  WalletProvider,
-} from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { getPhantomWallet } from "@solana/wallet-adapter-wallets";
-import {
-  WalletModalProvider,
-  WalletDisconnectButton,
-  WalletMultiButton,
-} from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl } from "@solana/web3.js";
-import "@solana/wallet-adapter-react-ui/styles.css";
-
 import { NotificationContainer } from "react-notifications";
 import "react-notifications/lib/notifications.css";
 
@@ -90,10 +76,6 @@ function App() {
   const isSmallerScreen = useMediaQuery("(max-width: 980px)");
   const isSmallScreen = useMediaQuery("(max-width: 600px)");
 
-  const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-  const wallets = useMemo(() => [getPhantomWallet()], []);
-
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -117,21 +99,14 @@ function App() {
     <Router>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
+        <div className={`app ${isSmallerScreen && "tablet"} ${isSmallScreen && "mobile"} light`}>
+          <Messages />
 
-        <ConnectionProvider endpoint={endpoint}>
-          <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>
-              <div className={`app ${isSmallerScreen && "tablet"} ${isSmallScreen && "mobile"} light`}>
-                <Messages />
+          <TopBar theme={theme} toggleTheme={toggleTheme} handleDrawerToggle={handleDrawerToggle} />
 
-                <TopBar theme={theme} toggleTheme={toggleTheme} handleDrawerToggle={handleDrawerToggle} />
-
-                <Stake />
-              </div>
-              <NotificationContainer />
-            </WalletModalProvider>
-          </WalletProvider>
-        </ConnectionProvider>
+          <Stake />
+        </div>
+        <NotificationContainer />            
       </ThemeProvider>
     </Router>
   );

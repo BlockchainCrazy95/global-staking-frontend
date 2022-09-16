@@ -12,18 +12,13 @@ import { error, info } from "../../slices/MessagesSlice";
 
 import "./stake.scss";
 
-import { useWallet } from "@solana/wallet-adapter-react";
-import { claimReward, getStakedInfo, unstakeNft } from "src/context/helper/nft-staking";
-import { getNftMetadataURI } from "src/context/utils";
-import { CLASS_TYPES, LOCK_DAY, SECONDS_PER_DAY } from "src/context/constants";
 import UnstakeTimer from "src/components/unstakeTimer/unstakeTimer"
 
 function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   const smallerScreen = useMediaQuery("(max-width: 650px)");
   const verySmallScreen = useMediaQuery("(max-width: 379px)");
   const dispatch = useDispatch();
-
-  const { connected, wallet, publicKey } = useWallet();
+  const connected = true;
 
   const [tokenChecked, setTokenChecked] = useState([]);
   const tokenSelectedList = useRef([]);
@@ -35,7 +30,8 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   // const setLoading = props.setLoading;
 
   const fetchStakedInfo = async () => {
-    let stakedInfo = await getStakedInfo(publicKey?.toBase58());
+    // let stakedInfo = await getStakedInfo(publicKey?.toBase58());
+    let stakedInfo = [];
     let arr = [];
     for (let i = 0; i < stakedInfo.length; i++) {
       let uri = await getNftMetadataURI(stakedInfo[i].account.nftAddr);

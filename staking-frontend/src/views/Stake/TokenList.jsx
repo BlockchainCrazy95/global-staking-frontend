@@ -9,13 +9,6 @@ import { useSelector } from "react-redux";
 import { trim, formatCurrency } from "../../helpers";
 import { stake } from "../../slices/NFT";
 import CardHeader from "../../components/CardHeader/CardHeader";
-import { PublicKey } from '@solana/web3.js';
-
-import { getNftMetadataURI, getAllNftData } from "../../context/utils";
-import { stakeNft, getStakedInfo } from "../../context/helper/nft-staking";
-import { NFT_CREATOR } from "../../context/constants";
-
-import { useWallet } from "@solana/wallet-adapter-react";
 import axios from "axios";
 
 import { useTheme } from "@material-ui/core/styles";
@@ -23,7 +16,7 @@ import "./stake.scss";
 
 import { NotificationManager } from "react-notifications";
 
-const collection_creator = NFT_CREATOR;
+const collection_creator = "NFT_CREATOR";
 
 function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   const theme = useTheme();
@@ -38,7 +31,6 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   const poolID = useRef("0");
   const tokenSelectedList = useRef([]);
   const [fetchFlag, setFetchFlag] = useState(true);
-  const wallet = useWallet();
 
   const [tokenIDList, setTokenIDList] = useState([]);
 
@@ -54,75 +46,75 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   useEffect(() => {
     async function fetchAll() {
       console.log("Fetching...............")
-      if (wallet && wallet.publicKey) {
+      if ( false /* wallet */) {
         // console.log('fetchFlag:  TRUE')
-        await fetchUnstakedInfo()
+        // await fetchUnstakedInfo()
       }
     }
 
     fetchAll();
-  }, [refreshFlag, wallet.connected])
+  }, [refreshFlag /* , wallet.connected */])
 
-  const fetchUnstakedInfo = async () => {
-    let data = await getNftTokenData();
-    if (data) {
-      // let collection = data.filter((item) => item.data.creators &&
-      //  (item.data.creators.filter((creator) => creator.verified == 1))[0].address == collection_creator);
+  // const fetchUnstakedInfo = async () => {
+  //   let data = await getNftTokenData();
+  //   if (data) {
+  //     // let collection = data.filter((item) => item.data.creators &&
+  //     //  (item.data.creators.filter((creator) => creator.verified == 1))[0].address == collection_creator);
 
-      let stakedInfo = await getStakedInfo(wallet.publicKey);
+  //     let stakedInfo = await getStakedInfo(wallet.publicKey);
 
-      let collection = [];
-      for (let i = 0; i < data.length; i++) {
-        let item = data[i];
-        if (item.data.creators) {
-          let verifiedCreators = item.data.creators.filter((creator) => creator.verified == 1);
-          if (verifiedCreators && verifiedCreators.length > 0) {
-            if (verifiedCreators[0].address == collection_creator) {
-              // check staked nft
-              let isStaked = false;
-              for (let s_idx = 0; s_idx < stakedInfo.length; s_idx++) {
-                if (stakedInfo[s_idx].account.nftAddr.equals(new PublicKey(item.mint))) {
-                  isStaked = true;
-                  break;
-                }
-              }
-              if (isStaked) {
-                continue;
-              }
+  //     let collection = [];
+  //     for (let i = 0; i < data.length; i++) {
+  //       let item = data[i];
+  //       if (item.data.creators) {
+  //         let verifiedCreators = item.data.creators.filter((creator) => creator.verified == 1);
+  //         if (verifiedCreators && verifiedCreators.length > 0) {
+  //           if (verifiedCreators[0].address == collection_creator) {
+  //             // check staked nft
+  //             let isStaked = false;
+  //             for (let s_idx = 0; s_idx < stakedInfo.length; s_idx++) {
+  //               if (stakedInfo[s_idx].account.nftAddr.equals(new PublicKey(item.mint))) {
+  //                 isStaked = true;
+  //                 break;
+  //               }
+  //             }
+  //             if (isStaked) {
+  //               continue;
+  //             }
 
-              // get uri
-              let uri = await axios.get(item.data.uri);
-              collection.push({ mint: item.mint, uri: uri.data });
-            }
-          }
-        }
-      }
+  //             // get uri
+  //             let uri = await axios.get(item.data.uri);
+  //             collection.push({ mint: item.mint, uri: uri.data });
+  //           }
+  //         }
+  //       }
+  //     }
 
-      tokenSelectedList.current = [];
-      collection.map((item, index) => {
-        tokenSelectedList.current.push({ "id": collection[index], "selected": false });
-      })
+  //     tokenSelectedList.current = [];
+  //     collection.map((item, index) => {
+  //       tokenSelectedList.current.push({ "id": collection[index], "selected": false });
+  //     })
 
-      // console.log('result : ', collection);
-      setTokenIDList(collection);
-    }
-  }
+  //     // console.log('result : ', collection);
+  //     setTokenIDList(collection);
+  //   }
+  // }
 
-  const getNftTokenData = async () => {
-    try {
-      let nftData = await getAllNftData();
-      var data = Object.keys(nftData).map((key) => nftData[key]); let arr = [];
-      let n = data.length;
-      for (let i = 0; i < n; i++) {
-        // // console.log(data[i].data.uri);
-        arr.push(data[i]);
-      }
-      // console.log(`arr`)
-      return arr;
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const getNftTokenData = async () => {
+  //   try {
+  //     let nftData = await getAllNftData();
+  //     var data = Object.keys(nftData).map((key) => nftData[key]); let arr = [];
+  //     let n = data.length;
+  //     for (let i = 0; i < n; i++) {
+  //       // // console.log(data[i].data.uri);
+  //       arr.push(data[i]);
+  //     }
+  //     // console.log(`arr`)
+  //     return arr;
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
 
   const onTokenSeltected = (event, id) => {
