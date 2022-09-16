@@ -72,7 +72,7 @@ function PoolList() {
 
   const PoolItemView = ({ item }) => {
     console.log("PoolItemView", item);
-    return (
+    return ( 
       < Grid item lg={4} md={4} sm={6} xs={12} style={{ justifyContent: "center" }} >
         <div className="pool-card">
           <Grid container className="data-grid" alignContent="center">
