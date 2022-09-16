@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { NotificationManager } from "react-notifications";
+
 import { Paper, Grid, Typography, Box, Zoom, Container, useMediaQuery, Button, Checkbox } from "@material-ui/core";
 
 import { unstake, emergencyWithdrawal } from "../../slices/NFT";
@@ -15,7 +17,6 @@ import { claimReward, getStakedInfo, unstakeNft } from "src/context/helper/nft-s
 import { getNftMetadataURI } from "src/context/utils";
 import { CLASS_TYPES, LOCK_DAY, SECONDS_PER_DAY } from "src/context/constants";
 import UnstakeTimer from "src/components/unstakeTimer/unstakeTimer"
-import { NotificationManager } from "react-notifications";
 
 function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   const smallerScreen = useMediaQuery("(max-width: 650px)");
