@@ -6,10 +6,7 @@ import { Hidden, useMediaQuery } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import useTheme from "./hooks/useTheme";
-import { useAddress, useWeb3Context } from "./hooks/web3Context";
 import useGoogleAnalytics from "./hooks/useGoogleAnalytics";
-import useSegmentAnalytics from "./hooks/useSegmentAnalytics";
-import { storeQueryParameters } from "./helpers/QueryParameterHelper";
 
 import { Stake } from "./views";
 import TopBar from "./components/TopBar/TopBar.jsx";
@@ -66,7 +63,6 @@ const useStyles = makeStyles(theme => ({
 
 function App() {
   useGoogleAnalytics();
-  useSegmentAnalytics();
   const dispatch = useDispatch();
   const [theme, toggleTheme, mounted] = useTheme();
   const location = useLocation();

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { useWeb3Context } from "../../hooks";
 import { Paper, Grid, Typography, Box, Zoom, Container, useMediaQuery, Button } from "@material-ui/core";
 import { Skeleton } from "@material-ui/lab";
 import { useSelector } from "react-redux";
@@ -11,6 +10,7 @@ import { prettifySeconds } from "../../helpers";
 
 import { useTheme } from "@material-ui/core/styles";
 import "./stake.scss";
+import { useWeb3Context } from "src/utils/web3Context";
 
 function PoolList() {
   const [data, setData] = useState(null);
