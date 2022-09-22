@@ -41,13 +41,5 @@ export const useRefresh = () => {
 }
 
 export const getWeb3 = (provider) => {
-    // return new Web3(web3Context?.provider || new Web3.providers.HttpProvider(RPC_URL[CHAIN_ID]))
-    // const { provider } = useWeb3Context();
-    // console.log("useWeb3 provider = ", provider);
     return new Web3(provider);
 }
-
-// export const useContract = (abi, addr, provider) => {
-//     const web3 = getWeb3(provider);
-//     return new web3.eth.Contract(abi, addr);
-// }

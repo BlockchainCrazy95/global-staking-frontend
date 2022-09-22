@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { useDispatch } from "react-redux";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { NotificationManager } from "react-notifications";
 
@@ -13,126 +12,148 @@ import { error, info } from "../../slices/MessagesSlice";
 import "./stake.scss";
 
 import UnstakeTimer from "src/components/unstakeTimer/unstakeTimer"
+import { useWeb3Context } from "src/utils/web3Context";
+import { claimReward, getBaseURI, getPendingReward, getStakedList, unstakeNft } from "src/contracts/contractHelpers";
+import { useContractContext } from "src/utils/ContractProvider";
+import { POOL_COUNT, POOL_INFO } from "src/utils/data";
+import erc721Abi from "src/contracts/abis/erc721Abi.json";
+import { getTokenIdMetadata } from "src/utils/fetchHelpers";
+import { showNotification } from "src/utils";
 
-function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
+const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) => {
   const smallerScreen = useMediaQuery("(max-width: 650px)");
   const verySmallScreen = useMediaQuery("(max-width: 379px)");
-  const dispatch = useDispatch();
-  const connected = true;
-
-  const [tokenChecked, setTokenChecked] = useState([]);
-  const tokenSelectedList = useRef([]);
-  const [stakeInfos, setStakeInfos] = useState([]);
-  // const [remainTimes, setRemainTimes] = useState([]);
-  const [vault_items, setVault_items] = useState([]);
-  const [flag, setFlag] = useState(true);
-
-  // const setLoading = props.setLoading;
+  const { address, connected } = useWeb3Context();
+  const { web3, stakingContract } = useContractContext();
+  const [ isRefresh, setIsRefresh ] = useState(false);
+  const [ stakedItems, setStakedItems ] = useState([]);
+  const [ selectedList, setSelectedList ] = useState([]);
 
   const fetchStakedInfo = async () => {
-    // let stakedInfo = await getStakedInfo(publicKey?.toBase58());
-    let stakedInfo = [];
-    let arr = [];
-    for (let i = 0; i < stakedInfo.length; i++) {
-      let uri = await getNftMetadataURI(stakedInfo[i].account.nftAddr);
-
-      let currentTimeStamp = new Date().getTime() / 1000;
-      let reward = CLASS_TYPES[stakedInfo[i].account.classId] * (currentTimeStamp - stakedInfo[i].account.lastUpdateTime) / SECONDS_PER_DAY;
-      // console.log("#############################", reward);
-      if (reward < 0) reward = 0;
-
-      arr.push({
-        id: stakedInfo[i].account.nftAddr.toBase58(),
-        uri: uri.image,
-        reward: reward,
-        name: uri.name,
-        classId: stakedInfo[i].account.classId,
-        lastUpdateTime: stakedInfo[i].account.lastUpdateTime,
-        stakeTime: stakedInfo[i].account.stakeTime,
-      });
+    const stakedList = [], list = [];
+    for(let i = 0;i<POOL_COUNT;i++) {
+      const res = await getStakedList(stakingContract, address, i);
+      for(let j = 0;j<res.length;j++)
+        stakedList.push({...res[j], poolId: i});
     }
-    setStakeInfos(arr);
-    // console.log("[] => update stakeinfos ......",);
+    // console.log("fetchStakedInfo stakedList=", stakedList)
+    const _selList = [];
+    for(let i = 0;i<stakedList.length;i++) {
+      _selList.push(false);
+      // const _nftContract = new web3.eth.Contract(erc721Abi, stakedList[i].nftAddress);
+      // const resBaseUri = await getBaseURI(_nftContract, stakedList[i].tokenId);
+      const _nftData = await getTokenIdMetadata(web3, stakedList[i].nftAddress, stakedList[i].tokenId);
+      const resGetBlock = await web3.eth.getBlock(stakedList[i].startBlock);
+      const pendingReward = await getPendingReward(stakingContract, address, stakedList[i].poolId, stakedList[i].nftAddress, stakedList[i].tokenId);
+      const _startTime = resGetBlock.timestamp;
+      if(_nftData) {
+        const jsonMetadata = JSON.parse(_nftData.metadata);
+        const imageUrl = jsonMetadata?.image;
+        list.push({
+          name: _nftData.name,
+          symbol: _nftData.symbol,
+          token_id: _nftData.token_id,
+          token_address: _nftData.token_address,
+          stakeTime: _startTime,
+          poolId: stakedList[i].poolId,
+          metadata: _nftData.metadata,
+          reward: pendingReward,
+          imageUrl
+        })
+      }
+    }
+    if(address) {
+      setStakedItems(list);
+      setSelectedList(_selList);
+    } else {
+      setStakedItems([]);
+      setSelectedList([]);
+    }
+    
+  }
+
+  const toggle = () => {
+    setIsRefresh(val => !val);
+    setTimeout(toggle, 5000);
   }
 
   useEffect(() => {
-    async function getStakeInfo() {
-      if (flag && connected) {
-        await fetchStakedInfo();
-        // setFlag(false);
-      }
-    }
+    toggle();
+  }, [])
 
-    getStakeInfo();
-  }, [connected, refreshFlag]);
+  // useEffect(() => {
+  //   let interval = null;
+  //   interval = setInterval(async () => {
+  //     toggle();
+  //   }, 5000)
+  //   return () => clearInterval(interval);
+  // }, [])
 
   useEffect(() => {
-    if (stakeInfos !== null && stakeInfos !== undefined) {
-      tokenSelectedList.current = [];
-      stakeInfos.map((item) => {
-        tokenSelectedList.current.push({ "id": item.id, "selected": false });
-        tokenChecked.push(false);
-      })
+    const getStakeInfo = async () => {
+      await fetchStakedInfo();
     }
-  }, [stakeInfos]);
+    if(connected && address)
+      getStakeInfo();
+    else{
+      setStakedItems([]);
+      setSelectedList([]);
+    }
+  }, [connected, address, refreshFlag, isRefresh]);
 
-  const onTokenSeltected = (event, id) => {
-    tokenSelectedList.current[id].selected = !tokenSelectedList.current[id].selected;
-    // tokenChecked[id] = event.target.checked;
-    // setTokenChecked([...tokenChecked]);
-    // console.log(tokenSelectedList.current);
+  const onTokenSelected = (event, id) => {
+    const list = []
+    for(let i = 0;i<selectedList.length;i++) {
+      if(i != id) list.push(false);
+      else list.push(!selectedList[i]);
+    }
+    setSelectedList(list);
   }
 
   const onClaim = async () => {
-    setLoadingStatus(true);
-
-    try {
-      let res = await claimReward(stakeInfos);
-      if (res.result == "success") {
-        NotificationManager.success('Claimed Successfully');
-        // dispatch(info("Unstaking Successfully!"));
-      } else {
-        NotificationManager.error('Claim Failed!');
-        // dispatch(error("Unstaking Failed!"));
-      }
-      updateRefreshFlag();
-    } catch (e) {
-      console.log(e);
-      NotificationManager.error(e.message);
+    if(!stakingContract || !address) {
+      showNotification("Please connect wallet!", "error");
+      return;
     }
-    setLoadingStatus(false);
+    if(selectedList.length == 0) {
+      showNotification("No staked Items!", "error");
+    } else{
+      setLoadingStatus(true);
+
+      try {
+        let res = await claimReward(stakingContract, address);
+        showNotification(res.message, res.success ? "success" : "error")
+        updateRefreshFlag();
+      } catch (e) {
+        console.log("claimReward catch=", e);
+        showNotification(e.message, "error")
+      }
+      setLoadingStatus(false);
+    }
   }
 
-  const onUnStake = async action => {
-    let tokenList = [];
-    let poolList = [];
-
-    tokenSelectedList.current.map((item, index) => {
-      if (item.selected) {
-        tokenList.push(item.id);
-      }
-    })
-
-    if (tokenList.length < 0) return;
-
-    try {
-      setLoadingStatus(true);
-      let res = await unstakeNft(tokenList);
-      setLoadingStatus(false);
-      if (res.result == "success") {
-        NotificationManager.success('Unstaked Successfully');
-      } else {
-        NotificationManager.error('Unstaking Failed!');
-      }
-      updateRefreshFlag();
-    } catch (e) {
-      console.log("[] => unstaking error: ", e);
-      NotificationManager.error(e.message);
-      setLoadingStatus(false);
+  const onUnstake = async () => {
+    if(!stakingContract || !address) {
+      showNotification("Please connect wallet!", "error");
+      return;
     }
-
-    // setLoading(false);
-    // await dispatch(unstake({ tokenList, provider, address, networkID: chainID }));
+    let selIndex = selectedList.indexOf(true);
+    if(selIndex == -1) {
+      showNotification("Please select NFT!", "error");
+    } else {
+      setLoadingStatus(true);
+      const poolId = stakedItems[selIndex].poolId;
+      console.log("unstake PoolId = ", poolId)
+      try {
+        let res = await unstakeNft(stakingContract, address, poolId, stakedItems[selIndex].token_address, stakedItems[selIndex].token_id);
+        showNotification(res.message, res.success ? "success" : "error");
+        updateRefreshFlag();
+      } catch (e) {
+        console.log("[] => unstaking error: ", e);
+        showNotification(e.message, "error");
+      }
+      setLoadingStatus(false);  
+    }
   };
 
   const onEmergencyWithdrawal = async action => {
@@ -147,36 +168,48 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
   }
 
 
-  const NFTItemView = ({ item, index }) => {
-    const [checked, setChecked] = useState(false);
-    useEffect(() => {
-      setChecked(false);
-    }, [item]);
+  const NFTItemView = ({ item, index, isSelected, onSelected }) => {
+  
+    const metadata = item.metadata ? JSON.parse(item.metadata) : null;
+    // const [ unstakeTime, setUnstaketime ] = useState(item.stakeTime + POOL_INFO[item.poolId].lockTime);
+    const [stakeTimeStr, setStakeTimeStr] = useState("-");
 
-    const onSelect = (e) => {
-      setChecked(checked => !checked);
-      onTokenSeltected(e, index);
+    const getStakeTimeStr = async () => {
+      let unstakeTime = item.stakeTime + POOL_INFO[item.poolId].lockTime;
+      setStakeTimeStr(prettyVestingPeriod2(unstakeTime));
+      setTimeout(getStakeTimeStr, 1000);
     }
 
-    // console.log("NFTItemView", item);
-    let unstakeTime = Number(item.stakeTime) + Number(LOCK_DAY[item.classId] * SECONDS_PER_DAY);
+    useEffect(() => {
+      getStakeTimeStr();
+    }, [])
+    
+    // useEffect(() => {
+    //   // let unstakeTime = item.stakeTime + POOL_INFO[item.poolId].lockTime;
+    //   setUnstaketime(item.stakeTime + POOL_INFO[item.poolId].lockTime);
+    //   console.log("NFTItmeView useEffect");
+    // }, [])
+    // console.log("stakeTime =", item.stakeTime, "unstakeTime=", unstakeTime, "lockTime=", POOL_INFO[item.poolId].lockTime)
+    
+
+
     return (
       <Grid item lg={3}>
-        <div className="pool-card" onClick={e => onSelect(e)}>
+        <div className="pool-card" onClick={e => onSelected(e, index)}>
           <Grid container className="data-grid" alignContent="center">
             <Grid item lg={9}  >
               <Typography variant="h6" >
-                {item.name.toString()}
+                {metadata ? metadata.name : item.name}
               </Typography>
             </Grid>
             <Grid item lg={3} style={{ display: "flex", justifyContent: "center" }}>
               <Checkbox style={{ marginTop: '-10px' }}
-                checked={tokenSelectedList.current && tokenSelectedList.current[index] ? tokenSelectedList.current[index].selected : false} />
+                checked={isSelected} />
             </Grid>
           </Grid>
 
           <Grid container className="data-grid" alignContent="center">
-            <img src={item?.uri} className="nft-list-item-image" width={"100%"} />
+            <img src={item.imageUrl} className="nft-list-item-image" width={"100%"} />
           </Grid>
           <Grid container className="data-grid" alignContent="center">
             <Grid item lg={6} md={6} sm={6} xs={6}>
@@ -186,7 +219,7 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
             </Grid>
             <Grid item lg={6} md={6} sm={6} xs={6}>
               <Typography variant="h6" className="nft-item-description-value" align={'right'}>
-                {item.classId + 1}
+                {item.poolId + 1}
               </Typography>
             </Grid>
           </Grid>
@@ -198,7 +231,7 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
             </Grid>
             <Grid item lg={6} md={6} sm={6} xs={6}>
               <Typography variant="h6" className="nft-item-description-value" align={'right'}>
-                {Number(item.reward).toLocaleString()}
+                {`${Number(item.reward).toLocaleString()} $VTC`}
               </Typography>
             </Grid>
           </Grid>
@@ -207,7 +240,8 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
               <Typography variant="h6" className="nft-item-description-value" align={'center'}>
                 {/* { (item.stakeType == 0) ? "No lockup" : prettyVestingPeriod2(item.depositTime) } */}
                 {/* {remainTimes[index]} */}
-                <UnstakeTimer unstakeTime={unstakeTime} />
+                {/* <UnstakeTimer unstakeTime={unstakeTime} /> */}
+                { stakeTimeStr }
               </Typography>
             </Grid>
             <Grid item lg={12} md={4} sm={4} xs={4}>
@@ -236,9 +270,14 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
           <div className="pool-card-container">
             <Grid container spacing={2} className="data-grid" alignContent="center">
               {
-                (stakeInfos && stakeInfos.length > 0) ?
-                  stakeInfos.map((item, index) => {
-                    return <NFTItemView item={item} index={index} />
+                (stakedItems && stakedItems.length > 0) ?
+                  stakedItems.map((item, index) => {
+                    return <NFTItemView
+                      item={item}
+                      index={index}
+                      isSelected={selectedList[index]}
+                      onSelected={onTokenSelected}
+                    />
                   })
                   :
                   <>
@@ -264,7 +303,7 @@ function StakedTokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag }) {
                   variant="contained"
                   color="primary"
                   onClick={() => {
-                    onUnStake();
+                    onUnstake();
                   }}
                 >
                   Unstake

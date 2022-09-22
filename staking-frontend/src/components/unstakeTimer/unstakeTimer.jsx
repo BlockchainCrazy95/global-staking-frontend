@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { prettyVestingPeriod2 } from "src/helpers";
+import { prettyVestingPeriod2 } from "src/utils";
 
 function UnstakeTimer({ unstakeTime }) {
     const [baseTime, setBaseTime] = useState(0);
-    const [remainTimeStr, setRemainTimeStr] = useState("");
+    const [remainTimeStr, setRemainTimeStr] = useState("-");
 
     useEffect(() => {
         setBaseTime(unstakeTime);
@@ -19,7 +19,7 @@ function UnstakeTimer({ unstakeTime }) {
     }, [baseTime]);
     return (
         <div>
-            {remainTimeStr}
+            { remainTimeStr }
         </div>
     );
 }

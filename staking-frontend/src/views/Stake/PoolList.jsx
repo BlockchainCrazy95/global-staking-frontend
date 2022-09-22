@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Paper, Grid, Typography, Box, Zoom, Container, useMediaQuery, Button } from "@material-ui/core";
 import { Skeleton } from "@material-ui/lab";
@@ -8,21 +7,13 @@ import { trim, formatCurrency } from "../../helpers";
 import CardHeader from "../../components/CardHeader/CardHeader";
 import { prettifySeconds } from "../../helpers";
 
-import { useTheme } from "@material-ui/core/styles";
 import "./stake.scss";
-import { useWeb3Context } from "src/utils/web3Context";
 
 function PoolList() {
-  const [data, setData] = useState(null);
-  const [apy, setApy] = useState(null);
-  const [runway, setRunway] = useState(null);
   // const [staked, setStaked] = useState(null);
-  const theme = useTheme();
   const smallerScreen = useMediaQuery("(max-width: 650px)");
   const verySmallScreen = useMediaQuery("(max-width: 379px)");
-  const dispatch = useDispatch();
 
-  const { connect, address, provider, chainID, connected, hasCachedProvider } = useWeb3Context();
   const staked = useSelector(state => {
     return state.app.Staked;
   });
@@ -36,42 +27,20 @@ function PoolList() {
     },
     {
       id: 1,
-      lockDay: '14 days',
+      lockDay: '2 days',
       reward: '15 $VTC per day',
       totalStaked: 0
     },
     {
       id: 2,
-      lockDay: '30 days',
+      lockDay: '3 days',
       reward: '25 $VTC per day',
       totalStaked: 0
     }
   ];
   const [poolList, setPoolList] = useState(initialPoolList);
 
-  const poolInfos = useSelector(state => {
-    return state.account.poolInfos;
-  })
-
-  useEffect(() => {
-    if (poolInfos !== null && poolInfos !== undefined) {
-      for (let i = 0; i < poolInfos.lockUpPeriods.length; i++) {
-        initialPoolList[i].lockDay = poolInfos.lockUpPeriods[i];
-        initialPoolList[i].reward = poolInfos.rewardMultipliers[i];
-        console.log("poolInfos.rewardMultipliers[i]", poolInfos.rewardMultipliers[i]);
-        // initialPoolList[i].totalStaked = poolInfos.totalStakeds[i];
-
-      }
-      setPoolList(initialPoolList);
-    }
-  }, [poolInfos]);
-
-  // const tokenIDList = useSelector(state => {
-  //   return state.account.nft && state.account.nft.tokenIDList;
-  // })
-
   const PoolItemView = ({ item }) => {
-    console.log("PoolItemView", item);
     return ( 
       < Grid item lg={4} md={4} sm={6} xs={12} style={{ justifyContent: "center" }} >
         <div className="pool-card">
