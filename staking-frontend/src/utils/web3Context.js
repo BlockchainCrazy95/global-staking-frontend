@@ -22,8 +22,8 @@ const web3Modal = new Web3Modal({
       package: WalletConnectProvider,
       options: {
         rpc: {
-          56: getMainnetURI(),
-          4: getTestnetURI(),
+          32520: getMainnetURI(),
+          64668: getTestnetURI(),
         },
       },
     },

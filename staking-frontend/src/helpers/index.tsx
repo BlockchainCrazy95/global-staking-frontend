@@ -149,11 +149,10 @@ export function prettyVestingPeriod2(currentTime: number) {
   // console.log("Lockup Period of time: ", currentTime.toString());
   // console.log("Current time: ", (new Date()).getTime() / 1000);
 
-  const seconds = (_currentTime - Math.floor((new Date()).getTime() / 1000));
+  const seconds = (_currentTime - Math.floor(Date.now() / 1000));
   if (seconds < 0) {
     return "Fully Vested";
   }
-
   return prettifySeconds_(seconds);
 }
 

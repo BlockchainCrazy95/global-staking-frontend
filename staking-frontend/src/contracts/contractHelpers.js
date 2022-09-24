@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { POOL_INFO, STAKING_CONTRACT_ADDRESS } from "src/utils/data";
+import { POOL_INFO, STAKING_CONTRACT_ADDRESS, STAKING_FEE } from "src/utils/data";
 import erc721Abi from "src/contracts/abis/erc721Abi.json";
 
 export const stakeNft = async (web3, _stakingContract, addr, pid, nftAddress, tokenId) => {
@@ -8,7 +8,9 @@ export const stakeNft = async (web3, _stakingContract, addr, pid, nftAddress, to
             const nftContract = new web3.eth.Contract(erc721Abi, nftAddress);
             const approveTx = await nftContract.methods.approve(STAKING_CONTRACT_ADDRESS, tokenId).send({value: 0, from: addr});
         }
-        const stakeTx = await _stakingContract.methods.stake(pid, nftAddress, [tokenId]).send({value: 0, from: addr});
+        console.log("_stakingContract = ", _stakingContract);
+        console.log(`PoolInfo[${pid}]=`, POOL_INFO[pid]);
+        const stakeTx = await _stakingContract.methods.stake(pid, nftAddress, [tokenId]).send({value: web3.utils.toWei(`${STAKING_FEE}`), from: addr});
         return {
             success: true,
             message: "Successfully staked!"
@@ -82,5 +84,15 @@ export const getSymbol = async(nftContract) => {
 
 export const getTokensOfOwner = async (nftContract, address) => {
     const res = await nftContract.methods.tokensOfOwner(address).call();
+    return res;
+}
+
+export const getBalanceOf = async(nftContract, address) => {
+    const res = await nftContract.methods.balanceOf(address).call();
+    return res;
+}
+
+export const getTokenOfOwnerByIndex = async(nftContract, address, index) => {
+    const res = await nftContract.methods.tokenOfOwnerByIndex(address, index).call();
     return res;
 }

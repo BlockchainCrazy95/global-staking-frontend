@@ -43,9 +43,14 @@ const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) 
       // const _nftContract = new web3.eth.Contract(erc721Abi, stakedList[i].nftAddress);
       // const resBaseUri = await getBaseURI(_nftContract, stakedList[i].tokenId);
       const _nftData = await getTokenIdMetadata(web3, stakedList[i].nftAddress, stakedList[i].tokenId);
-      const resGetBlock = await web3.eth.getBlock(stakedList[i].startBlock);
+      // const resGetBlock = await web3.eth.getBlock(stakedList[i].startBlock);
+      // console.log("resGetBlock = ", resGetBlock)
       const pendingReward = await getPendingReward(stakingContract, address, stakedList[i].poolId, stakedList[i].nftAddress, stakedList[i].tokenId);
-      const _startTime = resGetBlock.timestamp;
+      // console.log("pendingReward:", pendingReward)
+      // const _startTime = resGetBlock.timestamp;
+      const _startTime = stakedList[i].startBlock;
+      // console.log("stakedList[i]=", stakedList[i]);
+      // console.log("_startTime=", _startTime);
       if(_nftData) {
         const jsonMetadata = JSON.parse(_nftData.metadata);
         const imageUrl = jsonMetadata?.image;
@@ -57,7 +62,7 @@ const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) 
           stakeTime: _startTime,
           poolId: stakedList[i].poolId,
           metadata: _nftData.metadata,
-          reward: pendingReward,
+          reward: web3.utils.fromWei(pendingReward),
           imageUrl
         })
       }
@@ -175,7 +180,7 @@ const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) 
     const [stakeTimeStr, setStakeTimeStr] = useState("-");
 
     const getStakeTimeStr = async () => {
-      let unstakeTime = item.stakeTime + POOL_INFO[item.poolId].lockTime;
+      let unstakeTime = parseInt(item.stakeTime) + POOL_INFO[item.poolId].lockTime;
       setStakeTimeStr(prettyVestingPeriod2(unstakeTime));
       setTimeout(getStakeTimeStr, 1000);
     }

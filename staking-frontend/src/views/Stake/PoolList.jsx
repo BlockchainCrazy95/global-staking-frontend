@@ -21,22 +21,22 @@ function PoolList() {
   let initialPoolList = [
     {
       id: 0,
-      lockDay: 'no lock',
-      reward: '10 $VTC per day',
+      lockDay: '30 days',
+      reward: '1 $VTC per day',
       totalStaked: 0
     },
     {
       id: 1,
-      lockDay: '2 days',
-      reward: '15 $VTC per day',
+      lockDay: '30 days',
+      reward: '1 $Tokyo per day',
       totalStaked: 0
     },
-    {
-      id: 2,
-      lockDay: '3 days',
-      reward: '25 $VTC per day',
-      totalStaked: 0
-    }
+    // {
+    //   id: 2,
+    //   lockDay: '3 days',
+    //   reward: '25 $VTC per day',
+    //   totalStaked: 0
+    // }
   ];
   const [poolList, setPoolList] = useState(initialPoolList);
 

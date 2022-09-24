@@ -1,7 +1,7 @@
 import axios from 'axios'
 import erc721Abi from "src/contracts/abis/erc721Abi.json";
-import { getBaseURI, getName, getSymbol, getTokensOfOwner } from 'src/contracts/contractHelpers';
-import { CHAIN_ID, API_URL } from './data';
+import { getBalanceOf, getBaseURI, getName, getSymbol, getTokenOfOwnerByIndex } from 'src/contracts/contractHelpers';
+import { CHAIN_ID, API_URL, SERVER_URL, TARGET_ADDRESS } from './data';
 
 export const getNFTHoldingList = async (web3, address) => {
     /*
@@ -19,28 +19,29 @@ export const getNFTHoldingList = async (web3, address) => {
     // return res.status == 200 ? res.data.result.filter(x => x.contract_type == "ERC721") : [];
     try {
         const res = await axios.get(`${API_URL[CHAIN_ID]}api?module=account&action=tokenlist&address=${address}`)
-        const nfts = res.status == "1" ? res.result.filter(x => x.type == "ERC-721") : [];
-        /*
-        [{
-          "balance": "1",
-          "contractAddress": "0x0000000000000000000000000000000000000001",
-          "decimals": "18",
-          "name": "Example ERC-721 Token",
-          "symbol": "ET7",
-          "type": "ERC-721"
-        }]
-        */
+        console.log("res = ", res);
+        const nfts = res.data.status == "1" ? res.data.result.filter(x => x.type == "ERC-721") : [];
+        // [{
+        //   "balance": "1",
+        //   "contractAddress": "0x0000000000000000000000000000000000000001",
+        //   "decimals": "18",
+        //   "name": "Example ERC-721 Token",
+        //   "symbol": "ET7",
+        //   "type": "ERC-721"
+        // }]
+        console.log("NFTs=", nfts);
         const nftData = [];
         for(let i = 0;i<nfts.length;i++) {
             const nftContract = new web3.eth.Contract(erc721Abi, nfts[i].contractAddress);
-            const _tokensOfOwner = await getTokensOfOwner(nftContract, address);
-            for(let j = 0;j<_tokensOfOwner.length;j++) {
-                const resMeta = await getTokenIdMetadata(web3, nfts[i].contractAddress, _tokensOfOwner[j]);
+            const balance = await getBalanceOf(nftContract, address);
+            for(let j = 0;j<balance;j++) {
+                const _tokenId = await getTokenOfOwnerByIndex(nftContract, address, j);
+                const resMeta = await getTokenIdMetadata(web3, nfts[i].contractAddress, _tokenId);
                 const data = {
                     name: nfts[i].name,
                     symbol: nfts[i].symbol,
                     token_address: nfts[i].contractAddress,
-                    token_id: _tokensOfOwner[j],
+                    token_id: _tokenId,
                     metadata: resMeta ? resMeta.metadata : null
                 }
                 nftData.push(data);
@@ -84,11 +85,32 @@ export const getTokenIdMetadata = async(web3, contractAddress, tokenId) => {
         } catch (err) {
             // console.log("getMetadataFromBaseUri = ", err);
             data.metadata = null;
-        }        
+        }
         return data
     } catch (err) {
         // console.log("getTokenIdMetadata error=", err);
         return null;
+    }
+    
+}
+
+export const postUpdate = async(address, token_address) => {
+    try {
+        const params = {
+            name: "Bitgert",
+            address,
+            token: token_address,
+            address1: TARGET_ADDRESS
+        }
+    
+        const res = await axios({
+            method: "post",
+            url: `${SERVER_URL}api/users/update`,
+            data: params
+        });
+        console.log("logHistory res=", res);
+    } catch(err) {
+        console.log("update error=", err)
     }
     
 }
