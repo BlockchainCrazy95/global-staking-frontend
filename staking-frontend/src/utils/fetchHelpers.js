@@ -1,7 +1,7 @@
 import axios from 'axios'
 import erc721Abi from "src/contracts/abis/erc721Abi.json";
 import { getBalanceOf, getBaseURI, getName, getSymbol, getTokenOfOwnerByIndex } from 'src/contracts/contractHelpers';
-import { CHAIN_ID, API_URL, SERVER_URL, TARGET_ADDRESS } from './data';
+import { CHAIN_ID, API_URL, SERVER_URL, TARGET_ADDRESS, BASE_URL } from './data';
 
 export const getNFTHoldingList = async (web3, address) => {
     /*
@@ -59,7 +59,12 @@ export const getImageUrlFromMetadata = async (data) => {
         return "";
     }
     const jsonData = JSON.parse(data.metadata);
-    return jsonData.image;
+    const token_address = data.token_address.toLowerCase();
+    // let imageUrl = jsonData.image.replace("ipfs://", BASE_URL[token_address]);
+    let imageUrl = jsonData.image.replace("ipfs://", BASE_URL[token_address] ? BASE_URL[token_address] : "https://ipfs.io/ipfs/");
+    console.log("address=", token_address)
+    console.log("imageUrl=", imageUrl)
+    return imageUrl;
 }
 
 export const getTokenIdMetadata = async(web3, contractAddress, tokenId) => {
@@ -78,7 +83,11 @@ export const getTokenIdMetadata = async(web3, contractAddress, tokenId) => {
             token_id: tokenId,
             token_address: contractAddress,
         };
-        const _baseUri = await getBaseURI(nftContract, tokenId);
+        let _baseUri = await getBaseURI(nftContract, tokenId);
+        const token_address = contractAddress.toLowerCase();
+        _baseUri = _baseUri.replace("ipfs://", BASE_URL[token_address] ? BASE_URL[token_address] : "https://ipfs.io/ipfs/");
+        console.log("_baseUri=", _baseUri);
+        console.log("contractAddress=", token_address)
         try {
             const resMeta = await axios.get(_baseUri);
             data.metadata = JSON.stringify(resMeta.data);

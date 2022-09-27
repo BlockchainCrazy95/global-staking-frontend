@@ -17,7 +17,7 @@ import { claimReward, getBaseURI, getPendingReward, getStakedList, unstakeNft } 
 import { useContractContext } from "src/utils/ContractProvider";
 import { POOL_COUNT, POOL_INFO } from "src/utils/data";
 import erc721Abi from "src/contracts/abis/erc721Abi.json";
-import { getTokenIdMetadata } from "src/utils/fetchHelpers";
+import { getImageUrlFromMetadata, getTokenIdMetadata } from "src/utils/fetchHelpers";
 import { showNotification } from "src/utils";
 
 const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) => {
@@ -52,8 +52,9 @@ const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) 
       // console.log("stakedList[i]=", stakedList[i]);
       // console.log("_startTime=", _startTime);
       if(_nftData) {
-        const jsonMetadata = JSON.parse(_nftData.metadata);
-        const imageUrl = jsonMetadata?.image;
+        // const jsonMetadata = JSON.parse(_nftData.metadata);
+        // const imageUrl = jsonMetadata?.image;
+        const imageUrl = await getImageUrlFromMetadata(_nftData);
         list.push({
           name: _nftData.name,
           symbol: _nftData.symbol,
@@ -66,6 +67,7 @@ const  StakedTokenList = ({ setLoadingStatus, refreshFlag, updateRefreshFlag }) 
           imageUrl
         })
       }
+      console.log("stakedLIst list=", list);
     }
     if(address) {
       setStakedItems(list);

