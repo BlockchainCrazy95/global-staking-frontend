@@ -54,7 +54,7 @@ export const Web3ContextProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [chainID, setChainID] = useState(CHAIN_ID);
   const [address, setAddress] = useState("");
-  const [provider, setProvider] = useState(RPC_URL[CHAIN_ID]);
+  const [provider, setProvider] = useState(new StaticJsonRpcProvider(RPC_URL[CHAIN_ID]));
 
   const hasCachedProvider = () => {
     if (!web3Modal) return false;

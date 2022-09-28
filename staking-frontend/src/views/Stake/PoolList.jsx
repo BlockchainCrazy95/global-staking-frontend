@@ -8,6 +8,8 @@ import CardHeader from "../../components/CardHeader/CardHeader";
 import { prettifySeconds } from "../../helpers";
 
 import "./stake.scss";
+import { useContractContext } from "src/utils/ContractProvider";
+import { POOL_INFO } from "src/utils/data";
 
 function PoolList() {
   // const [staked, setStaked] = useState(null);
@@ -18,27 +20,27 @@ function PoolList() {
     return state.app.Staked;
   });
 
-  let initialPoolList = [
-    {
-      id: 0,
-      lockDay: '30 days',
-      reward: '1 $VTC per day',
-      totalStaked: 0
-    },
-    {
-      id: 1,
-      lockDay: '30 days',
-      reward: '1 $Tokyo per day',
-      totalStaked: 0
-    },
-    // {
-    //   id: 2,
-    //   lockDay: '3 days',
-    //   reward: '25 $VTC per day',
-    //   totalStaked: 0
-    // }
-  ];
-  const [poolList, setPoolList] = useState(initialPoolList);
+  // let initialPoolList = [
+  //   {
+  //     id: 0,
+  //     lockDay: '30 days',
+  //     reward: '1 $VTC per day',
+  //     totalStaked: 0
+  //   },
+  //   {
+  //     id: 1,
+  //     lockDay: '30 days',
+  //     reward: '1 $Tokyo per day',
+  //     totalStaked: 0
+  //   },
+  //   // {
+  //   //   id: 2,
+  //   //   lockDay: '3 days',
+  //   //   reward: '25 $VTC per day',
+  //   //   totalStaked: 0
+  //   // }
+  // ];
+  const [poolList, setPoolList] = useState(POOL_INFO);
 
   const PoolItemView = ({ item }) => {
     return ( 
@@ -76,7 +78,7 @@ function PoolList() {
             </Grid>
             <Grid item lg={6} md={6} sm={6} xs={6}>
               <Typography variant="h6" className="nft-item-description-value" align={'right'}>
-                {(item.lockDay) ? initialPoolList[item.id].lockDay : prettifySeconds(item.lockDay)}
+                {(item.lockDay) ? POOL_INFO[item.id].lockDay : prettifySeconds(item.lockDay)}
               </Typography>
             </Grid>
           </Grid>

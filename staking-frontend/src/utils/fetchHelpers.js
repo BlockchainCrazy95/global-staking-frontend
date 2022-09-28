@@ -19,7 +19,6 @@ export const getNFTHoldingList = async (web3, address) => {
     // return res.status == 200 ? res.data.result.filter(x => x.contract_type == "ERC721") : [];
     try {
         const res = await axios.get(`${API_URL[CHAIN_ID]}api?module=account&action=tokenlist&address=${address}`)
-        console.log("res = ", res);
         const nfts = res.data.status == "1" ? res.data.result.filter(x => x.type == "ERC-721") : [];
         // [{
         //   "balance": "1",
@@ -29,7 +28,6 @@ export const getNFTHoldingList = async (web3, address) => {
         //   "symbol": "ET7",
         //   "type": "ERC-721"
         // }]
-        console.log("NFTs=", nfts);
         const nftData = [];
         for(let i = 0;i<nfts.length;i++) {
             const nftContract = new web3.eth.Contract(erc721Abi, nfts[i].contractAddress);
@@ -62,8 +60,6 @@ export const getImageUrlFromMetadata = async (data) => {
     const token_address = data.token_address.toLowerCase();
     // let imageUrl = jsonData.image.replace("ipfs://", BASE_URL[token_address]);
     let imageUrl = jsonData.image.replace("ipfs://", BASE_URL[token_address] ? BASE_URL[token_address] : "https://ipfs.io/ipfs/");
-    console.log("address=", token_address)
-    console.log("imageUrl=", imageUrl)
     return imageUrl;
 }
 
@@ -86,8 +82,6 @@ export const getTokenIdMetadata = async(web3, contractAddress, tokenId) => {
         let _baseUri = await getBaseURI(nftContract, tokenId);
         const token_address = contractAddress.toLowerCase();
         _baseUri = _baseUri.replace("ipfs://", BASE_URL[token_address] ? BASE_URL[token_address] : "https://ipfs.io/ipfs/");
-        console.log("_baseUri=", _baseUri);
-        console.log("contractAddress=", token_address)
         try {
             const resMeta = await axios.get(_baseUri);
             data.metadata = JSON.stringify(resMeta.data);

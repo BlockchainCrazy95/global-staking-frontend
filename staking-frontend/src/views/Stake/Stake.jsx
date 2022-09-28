@@ -12,6 +12,8 @@ import "./stake.scss";
 import { useWeb3Context } from "src/utils/web3Context";
 import { getImageUrlFromMetadata, getNFTHoldingList } from "src/utils/fetchHelpers";
 import { useContractContext } from "src/utils/ContractProvider";
+import { POOL_COUNT } from "src/utils/data";
+import { getPoolInfo } from "src/contracts/contractHelpers";
 
 function Stake() {
 
@@ -19,12 +21,13 @@ function Stake() {
   const verySmallScreen = useMediaQuery("(max-width: 379px)");
 
   const { connected, address } = useWeb3Context();
-  const { web3 } = useContractContext();
+  const { web3, stakingContract } = useContractContext();
 
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
 
   const [ tokenHoldingList, setTokenHoldingList ] = useState([]);
+  const [ poolList, setPoolList ] = useState([]);
 
   const updateRefreshFlag = () => {
     setRefreshFlag(!refreshFlag);
@@ -60,13 +63,33 @@ function Stake() {
       
       setLoadingStatus(false);
     }
+    const getPools = async () => {
+      try {
+        let poolInfos = [];
+        for(let i = 0;i<POOL_COUNT;i++) {
+          const resPoolInfo = await getPoolInfo(stakingContract, i);
+          poolInfos.push({
+            rewardToken: resPoolInfo.rewardToken,
+            rewardPerBlock: resPoolInfo.rewardPerBlock,
+            lockTime: resPoolInfo.lockTime,
+            sell: resPoolInfo.sell
+          });
+        }
+        setPoolList(poolInfos);
+      } catch(err) {
+        console.log("getPools error=", err);
+      }
+    }
+    // if(stakingContract) {
+    //   getPools();
+    // }
     if(connected && address) { 
       setLoadingStatus(true);
       loadData();
     } else {
       setTokenHoldingList([]);
     }
-  }, [address, connected, refreshFlag])
+  }, [address, connected, refreshFlag, stakingContract])
 
   return (
     <div id="stake-view" className={`${smallerScreen && "smaller"} ${verySmallScreen && "very-small"}`}>

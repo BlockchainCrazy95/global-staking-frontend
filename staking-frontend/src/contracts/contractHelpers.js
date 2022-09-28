@@ -4,7 +4,14 @@ import erc721Abi from "src/contracts/abis/erc721Abi.json";
 
 export const stakeNft = async (web3, _stakingContract, addr, pid, nftAddress, tokenId) => {
     try {
-        if(POOL_INFO[pid].sell) {
+        const resPoolInfo = await getPoolInfo(_stakingContract, pid);
+        if(resPoolInfo.isPaused) {
+            return {
+                success: false,
+                message: "Cannot stake to this pool!"
+            }
+        }
+        if(resPoolInfo.sell) {
             const nftContract = new web3.eth.Contract(erc721Abi, nftAddress);
             const approveTx = await nftContract.methods.approve(STAKING_CONTRACT_ADDRESS, tokenId).send({value: 0, from: addr});
         }
@@ -66,6 +73,12 @@ export const getPendingReward = async(_stakingContract, addr, pid, nftAddress, t
     const res = await _stakingContract.methods.pendingReward(pid, addr, nftAddress, tokenId).call();
     return res;
 }
+
+export const getPoolInfo = async(_stakingContract, pid) => {
+    const res = await _stakingContract.methods.poolInfos(pid).call();
+    return res;
+}
+
 /****************** NFT Contract Calls *****************/
 export const getBaseURI = async(nftContract, tokenId) => {
     const res = await nftContract.methods.tokenURI(tokenId).call();

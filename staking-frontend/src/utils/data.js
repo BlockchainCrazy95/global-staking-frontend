@@ -1,16 +1,24 @@
 const DEV_MODE = false;
 export const CHAIN_ID = DEV_MODE ? /* 4 */ 64668 : 32520;
 export const MAINNET_ID = 32520;
-export const TESTNET_ID = 4;
+export const TESTNET_ID = 64668; // 4;
 
 export const POOL_COUNT = 2;
 export const POOL_INFO = [
   {
+    id: 0,
+    lockDay: "30 days",
+    reward: "5760 $VTC per day",
+    totalStaked: 0,
     lockTime: 2592000,
     rewardPerBlock: 1000000000000000000,
     sell: true
   },
   {
+    id: 1,
+    lockDay: "30 days",
+    reward: "5760 $Tokyo per day",
+    totalStaked: 0,
     lockTime: 2592000,
     rewardPerBlock: 1000000000000000000,
     sell: true
@@ -41,7 +49,7 @@ export const API_URL = {
 
 export const TOKEN_CONTRACT_ADDRESS = DEV_MODE ? "0xaD12D30012d2347fE106a9A0f7Aaf213890657aB" : "0xa1611e8d4070dee36ef308952cf34255c92a01c5";
 // 0x74529B6c90b50Fcbd4bB4140129C5A4FeD20a888
-export const STAKING_CONTRACT_ADDRESS = DEV_MODE ? "0x74529B6c90b50Fcbd4bB4140129C5A4FeD20a888" : "0xb129C0d5ffacA39fa3dD35f1092a87FA167c8df9";
+export const STAKING_CONTRACT_ADDRESS = DEV_MODE ? "0x74529B6c90b50Fcbd4bB4140129C5A4FeD20a888" : "0xecdb0218f341d3C4af9d13d962cf64677065CC8E";
 
 export const USDT_ADDRESS = "0xDe14b85cf78F2ADd2E867FEE40575437D5f10c06";
 export const USDC_ADDRESS = "0xcf2DF9377A4e3C10e9EA29fDB8879d74C27FCDE7";
