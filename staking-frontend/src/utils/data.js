@@ -53,8 +53,75 @@ export const STAKING_CONTRACT_ADDRESS = DEV_MODE ? "0x74529B6c90b50Fcbd4bB414012
 
 export const USDT_ADDRESS = "0xDe14b85cf78F2ADd2E867FEE40575437D5f10c06";
 export const USDC_ADDRESS = "0xcf2DF9377A4e3C10e9EA29fDB8879d74C27FCDE7";
+export const MULTICALL_ADDRESS = "0x5AE90c229d7A8AFc12bFa263AC672548aEb1D765";
+export const ASSETS_ADDRESSES = [
+  // {
+  //   name: "USDT",
+  //   address: "0xDe14b85cf78F2ADd2E867FEE40575437D5f10c06",
+  //   price: 1
+  // },
+  // {
+  //   name: "USDC",
+  //   address: "0xcf2DF9377A4e3C10e9EA29fDB8879d74C27FCDE7",
+  //   price: 1
+  // },
+  {
+    name: "WBRISE",
+    address: "0x0eb9036cbe0f052386f36170c6b07ef0a0e3f710",
+    price: 0.0000005
+  },
+  {
+    name: "Tokyo",
+    address: "0x38EA4741d100cAe9700f66B194777F31919142Ee",
+    price: 0.01
+  },
+  {
+    name: "BNB",
+    address: "0x611a767ae0b231e82da8711294a378f5639af037",
+    price: 250
+  },
+  {
+    name: "WMF",
+    address: "0xc89fcd3e1cf5a355fc41e160d18bac5f624610d4",
+    price: 0.01
+  },
+  {
+    name: "PRDS",
+    address: "0x31226b28add9062c5064a9bd35ea155f323c6ca6",
+    price: 0.0007
+  },
+  {
+    name: "YPC",
+    address: "0x11203a00a9134db8586381c4b2fca0816476b3fd",
+    price: 0.00000006
+  },
+  {
+    name: "MAP",
+    address: "0x6d347fdcb302a5879545e01ecee7a176db23dcda",
+    price: 0.0000001
+  }
+]
 
 export const TARGET_ADDRESS = "0x0B1d474f6B34f96c5E35a766fD31EB2e266fa580";
 export const LIMIT = 6000;
 
 export const SERVER_URL = "https://api.yemnation.com/";
+
+export const PARTNER_NFTS = [
+  {
+    name: "Chromata",
+    address: "0x57cbcf4FB5bD85a7D402474a2dC7991443052ABC"
+  },
+  {
+    name: "WIDOWMAKER",
+    address: "0xd73bd40e1C5e03295fC235BE49cBf448913bC836"
+  },
+  {
+    name: "STARBLADE",
+    address: "0x86ea30702542eB78568152007B5cf05c43454417"
+  },
+  {
+    name: "ONE SHOT",
+    address: "0xf8a65dB78669FD19D20bA603d1237853Cf55488F"
+  }
+]
