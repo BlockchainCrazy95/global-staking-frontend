@@ -43,8 +43,8 @@ export const RPC_URL = {
 
 export const API_URL = {
   64668: "http://testnet-rpc.brisescan.com/",
-  // 32520: "https://brisescan.com/",
-  32520: "https://scanbrc.com/"
+  32520: "https://brisescan.com/",
+  // 32520: "https://scanbrc.com/"
 }
 
 export const TOKEN_CONTRACT_ADDRESS = DEV_MODE ? "0xaD12D30012d2347fE106a9A0f7Aaf213890657aB" : "0xa1611e8d4070dee36ef308952cf34255c92a01c5";
